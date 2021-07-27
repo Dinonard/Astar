@@ -1,29 +1,1 @@
-[workspace]
-members = [
-    "bin/node",
-    "bin/node/cli",
-    "bin/node/rpc",
-    "bin/node/runtime",
-    "bin/node/primitives",
-    "frame/plasm-rewards",
-    "frame/plasm-support",
-    "frame/plasm-operator",
-    "frame/custom-signatures",
-]
-
-exclude = [
-    "contracts",
-    "vendor",
-]
-
-[profile.release]
-# Plasm runtime requires unwinding.
-panic = "unwind"
-
-[patch.'https://github.com/paritytech/substrate']
-sc-network = "0.9.0"
-sc-finality-grandpa = "0.9.0"
-sp-runtime = "3.0.0"
-sp-blockchain = "3.0.0"
-sc-client-api = "3.0.0"
-sc-service = "0.9.0"
+[workspace]members = [    "bin/node",    "bin/node/cli",    "bin/node/rpc",    "bin/node/runtime",    "bin/node/primitives",    "frame/plasm-operator",    "frame/custom-signatures",]exclude = [    "contracts",    "vendor",][profile.release]# Plasm runtime requires unwinding.panic = "unwind"[patch.'https://github.com/paritytech/substrate']sc-network = "0.9.0"sc-finality-grandpa = "0.9.0"sp-runtime = "3.0.0"sp-blockchain = "3.0.0"sc-client-api = "3.0.0"sc-service = "0.9.0"

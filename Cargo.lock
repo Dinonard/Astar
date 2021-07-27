@@ -4457,7 +4457,6 @@ dependencies = [
  "pallet-authorship",
  "pallet-session",
  "parity-scale-codec",
- "serde",
  "sp-application-crypto",
  "sp-io",
  "sp-npos-elections",
@@ -7512,7 +7511,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54e6e8b84ee0dc7bb65b55beba55ffbc17803222ab7c746a74f72fc5869c7320"
 dependencies = [
  "parity-scale-codec",
- "serde",
  "sp-arithmetic",
  "sp-core",
  "sp-npos-elections-compact",
