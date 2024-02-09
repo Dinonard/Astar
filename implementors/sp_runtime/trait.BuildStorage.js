@@ -1,0 +1,6 @@
+(function() {var implementors = {
+"astar_runtime":[["impl <a class=\"trait\" href=\"astar_runtime/trait.BuildStorage.html\" title=\"trait astar_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"astar_runtime/struct.GenesisConfig.html\" title=\"struct astar_runtime::GenesisConfig\">GenesisConfig</a>"]],
+"local_runtime":[["impl <a class=\"trait\" href=\"local_runtime/trait.BuildStorage.html\" title=\"trait local_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"local_runtime/struct.GenesisConfig.html\" title=\"struct local_runtime::GenesisConfig\">GenesisConfig</a>"]],
+"shibuya_runtime":[["impl <a class=\"trait\" href=\"shibuya_runtime/trait.BuildStorage.html\" title=\"trait shibuya_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"shibuya_runtime/struct.GenesisConfig.html\" title=\"struct shibuya_runtime::GenesisConfig\">GenesisConfig</a>"]],
+"shiden_runtime":[["impl <a class=\"trait\" href=\"shiden_runtime/trait.BuildStorage.html\" title=\"trait shiden_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"shiden_runtime/struct.GenesisConfig.html\" title=\"struct shiden_runtime::GenesisConfig\">GenesisConfig</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
