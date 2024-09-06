@@ -98,115 +98,82 @@ jobs:
   srtool:
     needs: checks-and-tests
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     chain: ["astar", "shiden", "shibuya"]
+    strategy:
+      matrix:
+        chain: ["astar", "shiden", "shibuya"]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # - name: Srtool build
-      #   id: srtool_build
-      #   uses: chevdor/srtool-actions@v0.8.0
-      #   env:
-      #     # needed to enable metadata hash generation
-      #     BUILD_OPTS: "--features on-chain-release-build"
-      #   with:
-      #     profile: production
-      #     chain: ${{ matrix.chain }}
-      #     runtime_dir: runtime/${{ matrix.chain }}
+      - name: Srtool build
+        id: srtool_build
+        uses: chevdor/srtool-actions@v0.8.0
+        env:
+          # needed to enable metadata hash generation
+          BUILD_OPTS: "--features on-chain-release-build"
+        with:
+          profile: production
+          chain: ${{ matrix.chain }}
+          runtime_dir: runtime/${{ matrix.chain }}
 
-      # - name: Summary
-      #   run: |
-      #     echo '${{ steps.srtool_build.outputs.json }}' | jq > ${{ matrix.chain }}-srtool-digest.json
-      #     cat ${{ matrix.chain }}-srtool-digest.json
-      #     echo "Compact Runtime: ${{ steps.srtool_build.outputs.wasm }}"
-      #     echo "Compressed Runtime: ${{ steps.srtool_build.outputs.wasm_compressed }}"
-      #     cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}_runtime.compact.wasm
-      #     cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}_runtime.compact.compressed.wasm
-
-      # # it takes a while to build the runtime, so let's save the artifact as soon as we have it
-      # - name: Archive Artifacts for ${{ matrix.chain }}
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: ${{ matrix.chain }}-runtime
-      #     path: |
-      #       ${{ matrix.chain }}_runtime.compact.wasm
-      #       ${{ matrix.chain }}_runtime.compact.compressed.wasm
-      #       ${{ matrix.chain }}-srtool-digest.json
-
-      - name: Download blobs
+      - name: Summary
         run: |
-          curl -L -o astar_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-94.wasm
-          curl -L -o shiden_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-133.wasm
-          curl -L -o shibuya_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-136.wasm
-          curl -L -o astar-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-compressed-info.json
-          curl -L -o shiden-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-compressed-info.json
-          curl -L -o shibuya-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-compressed-info.json
-          curl -L -o astar-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-info.json
-          curl -L -o shiden-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-info.json
-          curl -L -o shibuya-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-info.json
-          curl -L -o astar-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-metadata.json
-          curl -L -o shiden-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-metadata.json
-          curl -L -o shibuya-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-metadata.json
+          echo '${{ steps.srtool_build.outputs.json }}' | jq > ${{ matrix.chain }}-srtool-digest.json
+          cat ${{ matrix.chain }}-srtool-digest.json
+          echo "Compact Runtime: ${{ steps.srtool_build.outputs.wasm }}"
+          echo "Compressed Runtime: ${{ steps.srtool_build.outputs.wasm_compressed }}"
+          cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}_runtime.compact.wasm
+          cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}_runtime.compact.compressed.wasm
+
+      # it takes a while to build the runtime, so let's save the artifact as soon as we have it
+      - name: Archive Artifacts for ${{ matrix.chain }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.chain }}-runtime
+          path: |
+            ${{ matrix.chain }}_runtime.compact.wasm
+            ${{ matrix.chain }}_runtime.compact.compressed.wasm
+            ${{ matrix.chain }}-srtool-digest.json
 
       # We now get extra information thanks to subwasm
-      # - name: Install subwasm
-      #   run: |
-      #     wget https://github.com/chevdor/subwasm/releases/download/v${{ env.SUBWASM_VERSION }}/subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
-      #     sudo dpkg -i subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
-      #     subwasm --version
+      - name: Install subwasm
+        run: |
+          wget https://github.com/chevdor/subwasm/releases/download/v${{ env.SUBWASM_VERSION }}/subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
+          sudo dpkg -i subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
+          subwasm --version
 
-      # - name: Show Runtime information
-      #   shell: bash
-      #   run: |
-      #     subwasm info ${{ steps.srtool_build.outputs.wasm }}
-      #     subwasm info ${{ steps.srtool_build.outputs.wasm_compressed }}
-      #     subwasm --json info ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-info.json
-      #     subwasm --json info ${{ steps.srtool_build.outputs.wasm_compressed }} > ${{ matrix.chain }}-compressed-info.json
+      - name: Show Runtime information
+        shell: bash
+        run: |
+          subwasm info ${{ steps.srtool_build.outputs.wasm }}
+          subwasm info ${{ steps.srtool_build.outputs.wasm_compressed }}
+          subwasm --json info ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-info.json
+          subwasm --json info ${{ steps.srtool_build.outputs.wasm_compressed }} > ${{ matrix.chain }}-compressed-info.json
 
-      # - name: Extract the metadata
-      #   shell: bash
-      #   run: |
-      #     subwasm meta ${{ steps.srtool_build.outputs.wasm }}
-      #     subwasm --json meta ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-metadata.json
+      - name: Extract the metadata
+        shell: bash
+        run: |
+          subwasm meta ${{ steps.srtool_build.outputs.wasm }}
+          subwasm --json meta ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-metadata.json
 
-      # - name: Check the metadata diff
-      #   shell: bash
-      #   # the following subwasm call will error for chains that are not known and/or live, that includes shell for instance
-      #   run: |
-      #     subwasm diff ${{ steps.srtool_build.outputs.wasm }} --chain-b ${{ matrix.chain }} || \
-      #       echo "Subwasm call failed, check the logs. This is likely because ${{ matrix.chain }} is not known by subwasm" | \
-      #       tee ${{ matrix.chain }}-diff.txt
-
-      - name: Archive Subwasm results
-        uses: actions/upload-artifact@v3
-        with:
-          name: astar-runtime
-          path: |
-            astar_runtime.compact.compressed.wasm
-            astar-compressed-info.json
-            astar-metadata.json
+      - name: Check the metadata diff
+        shell: bash
+        # the following subwasm call will error for chains that are not known and/or live, that includes shell for instance
+        run: |
+          subwasm diff ${{ steps.srtool_build.outputs.wasm }} --chain-b ${{ matrix.chain }} || \
+            echo "Subwasm call failed, check the logs. This is likely because ${{ matrix.chain }} is not known by subwasm" | \
+            tee ${{ matrix.chain }}-diff.txt
 
       - name: Archive Subwasm results
         uses: actions/upload-artifact@v3
         with:
-          name: shiden-runtime
+          name: ${{ matrix.chain }}-runtime
           path: |
-            shiden_runtime.compact.compressed.wasm
-            shiden-compressed-info.json
-            shiden-metadata.json
-
-
-      - name: Archive Subwasm results
-        uses: actions/upload-artifact@v3
-        with:
-          name: shibuya-runtime
-          path: |
-            shibuya_runtime.compact.compressed.wasm
-            shibuya-compressed-info.json
-            shibuya-metadata.json
+            ${{ matrix.chain }}-info.json
+            ${{ matrix.chain }}-compressed-info.json
+            ${{ matrix.chain }}-metadata.json
+            ${{ matrix.chain }}-diff.txt
 
   publish-release-draft:
     needs: [evm-tracing-runtimes, srtool]
