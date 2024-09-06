@@ -150,7 +150,24 @@ jobs:
           curl -L -o astar-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-metadata.json
           curl -L -o shiden-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-metadata.json
           curl -L -o shibuya-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-metadata.json
-          
+
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v3
+        with:
+          name: astar-runtime
+          path: astar_runtime.compact.compressed.wasm
+
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v3
+        with:
+          name: shiden-runtime
+          path: shiden_runtime.compact.compressed.wasm
+
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v3
+        with:
+          name: shibuya-runtime
+          path: shibuya_runtime.compact.compressed.wasm
 
       # We now get extra information thanks to subwasm
       # - name: Install subwasm
