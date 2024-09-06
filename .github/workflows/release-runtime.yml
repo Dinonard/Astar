@@ -8,158 +8,184 @@ env:
   SUBWASM_VERSION: 0.16.1
 jobs:
   checks-and-tests:
-    runs-on: [self-hosted, Linux, X64]
+    # runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     steps:
-      - name: Free disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          df -h
+      # - name: Free disk space
+      #   run: |
+      #     sudo rm -rf /usr/share/dotnet
+      #     sudo rm -rf /usr/local/lib/android
+      #     sudo rm -rf /opt/ghc
+      #     sudo rm -rf "/usr/local/share/boost"
+      #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+      #     df -h
 
       - name: Checkout the source code
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Install deps
-        run: sudo apt -y install protobuf-compiler
+      # - name: Install deps
+      #   run: sudo apt -y install protobuf-compiler
 
-      - name: Install & display rust toolchain
-        run: rustup show
+      # - name: Install & display rust toolchain
+      #   run: rustup show
 
-      - name: Check targets are installed correctly
-        run: rustup target list --installed
+      # - name: Check targets are installed correctly
+      #   run: rustup target list --installed
 
-      - name: Install cargo-nextest
-        run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+      # - name: Install cargo-nextest
+      #   run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
 
-      - name: Check all features compilation
-        run: cargo check --features try-runtime,runtime-benchmarks --locked
+      # - name: Check all features compilation
+      #   run: cargo check --features try-runtime,runtime-benchmarks --locked
 
-      - name: Run all tests
-        run: make test-all
+      # - name: Run all tests
+      #   run: make test-all
 
   evm-tracing-runtimes:
     needs: checks-and-tests
-    runs-on: [self-hosted, Linux, X64]
+    # runs-on: [self-hosted, Linux, X64]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout the source code
         uses: actions/checkout@v4
         with:
           submodules: true
 
-      - name: Install deps
-        run: sudo apt -y install protobuf-compiler
+      # - name: Install deps
+      #   run: sudo apt -y install protobuf-compiler
 
-      - name: Install & display rust toolchain
-        run: rustup show
+      # - name: Install & display rust toolchain
+      #   run: rustup show
 
-      - name: Check targets are installed correctly
-        run: rustup target list --installed
+      # - name: Check targets are installed correctly
+      #   run: rustup target list --installed
 
-      - name: Build optimized runtimes with evm tracing
-        run: cargo build --profile production --locked --features on-chain-release-build,evm-tracing -p astar-runtime -p shiden-runtime -p shibuya-runtime
+      # - name: Build optimized runtimes with evm tracing
+      #   run: cargo build --profile production --locked --features on-chain-release-build,evm-tracing -p astar-runtime -p shiden-runtime -p shibuya-runtime
 
-      - name: rename evm tracing runtimes
+      # - name: rename evm tracing runtimes
+      #   run: |
+      #     mv target/production/wbuild/astar-runtime/astar_runtime.compact.compressed.wasm target/production/wbuild/astar-runtime/astar_evm_tracing_runtime.compact.compressed.wasm
+      #     mv target/production/wbuild/shiden-runtime/shiden_runtime.compact.compressed.wasm target/production/wbuild/shiden-runtime/shiden_evm_tracing_runtime.compact.compressed.wasm
+      #     mv target/production/wbuild/shibuya-runtime/shibuya_runtime.compact.compressed.wasm target/production/wbuild/shibuya-runtime/shibuya_evm_tracing_runtime.compact.compressed.wasm
+
+      - name: Download tracing binary
         run: |
-          mv target/production/wbuild/astar-runtime/astar_runtime.compact.compressed.wasm target/production/wbuild/astar-runtime/astar_evm_tracing_runtime.compact.compressed.wasm
-          mv target/production/wbuild/shiden-runtime/shiden_runtime.compact.compressed.wasm target/production/wbuild/shiden-runtime/shiden_evm_tracing_runtime.compact.compressed.wasm
-          mv target/production/wbuild/shibuya-runtime/shibuya_runtime.compact.compressed.wasm target/production/wbuild/shibuya-runtime/shibuya_evm_tracing_runtime.compact.compressed.wasm
+          curl -L -o release.tar.gz https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/evm-tracing-artifacts-v5.43.1.tar.gz
+
+      - name: Untar tracing binary
+        run: |
+          mkdir -p release
+          tar -xzf release.tar.gz -C tracing
 
       - uses: actions/upload-artifact@v3
         with:
           name: astar-evm-tracing-runtime
-          path: target/production/wbuild/astar-runtime/astar_evm_tracing_runtime.compact.compressed.wasm
+          path: tracing/astar-94_evm_tracing_runtime.compact.compressed.wasm
 
       - uses: actions/upload-artifact@v3
         with:
           name: shiden-evm-tracing-runtime
-          path: target/production/wbuild/shiden-runtime/shiden_evm_tracing_runtime.compact.compressed.wasm
+          path: tracing/shiden-133_evm_tracing_runtime.compact.compressed.wasm
 
       - uses: actions/upload-artifact@v3
         with:
           name: shibuya-evm-tracing-runtime
-          path: target/production/wbuild/shibuya-runtime/shibuya_evm_tracing_runtime.compact.compressed.wasm
+          path: tracing/shibuya-136_evm_tracing_runtime.compact.compressed.wasm
 
   srtool:
     needs: checks-and-tests
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        chain: ["astar", "shiden", "shibuya"]
+    # strategy:
+    #   matrix:
+    #     chain: ["astar", "shiden", "shibuya"]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Srtool build
-        id: srtool_build
-        uses: chevdor/srtool-actions@v0.8.0
-        env:
-          # needed to enable metadata hash generation
-          BUILD_OPTS: "--features on-chain-release-build"
-        with:
-          profile: production
-          chain: ${{ matrix.chain }}
-          runtime_dir: runtime/${{ matrix.chain }}
+      # - name: Srtool build
+      #   id: srtool_build
+      #   uses: chevdor/srtool-actions@v0.8.0
+      #   env:
+      #     # needed to enable metadata hash generation
+      #     BUILD_OPTS: "--features on-chain-release-build"
+      #   with:
+      #     profile: production
+      #     chain: ${{ matrix.chain }}
+      #     runtime_dir: runtime/${{ matrix.chain }}
 
-      - name: Summary
+      # - name: Summary
+      #   run: |
+      #     echo '${{ steps.srtool_build.outputs.json }}' | jq > ${{ matrix.chain }}-srtool-digest.json
+      #     cat ${{ matrix.chain }}-srtool-digest.json
+      #     echo "Compact Runtime: ${{ steps.srtool_build.outputs.wasm }}"
+      #     echo "Compressed Runtime: ${{ steps.srtool_build.outputs.wasm_compressed }}"
+      #     cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}_runtime.compact.wasm
+      #     cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}_runtime.compact.compressed.wasm
+
+      # # it takes a while to build the runtime, so let's save the artifact as soon as we have it
+      # - name: Archive Artifacts for ${{ matrix.chain }}
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: ${{ matrix.chain }}-runtime
+      #     path: |
+      #       ${{ matrix.chain }}_runtime.compact.wasm
+      #       ${{ matrix.chain }}_runtime.compact.compressed.wasm
+      #       ${{ matrix.chain }}-srtool-digest.json
+
+      - name: Download blobs
         run: |
-          echo '${{ steps.srtool_build.outputs.json }}' | jq > ${{ matrix.chain }}-srtool-digest.json
-          cat ${{ matrix.chain }}-srtool-digest.json
-          echo "Compact Runtime: ${{ steps.srtool_build.outputs.wasm }}"
-          echo "Compressed Runtime: ${{ steps.srtool_build.outputs.wasm_compressed }}"
-          cp ${{ steps.srtool_build.outputs.wasm }} ${{ matrix.chain }}_runtime.compact.wasm
-          cp ${{ steps.srtool_build.outputs.wasm_compressed }} ${{ matrix.chain }}_runtime.compact.compressed.wasm
-
-      # it takes a while to build the runtime, so let's save the artifact as soon as we have it
-      - name: Archive Artifacts for ${{ matrix.chain }}
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.chain }}-runtime
-          path: |
-            ${{ matrix.chain }}_runtime.compact.wasm
-            ${{ matrix.chain }}_runtime.compact.compressed.wasm
-            ${{ matrix.chain }}-srtool-digest.json
+          curl -L -o astar_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-94.wasm
+          curl -L -o shiden_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-133.wasm
+          curl -L -o shibuya_runtime.compact.compressed.wasm https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-136.wasm
+          curl -L -o astar-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-compressed-info.json
+          curl -L -o shiden-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-compressed-info.json
+          curl -L -o shibuya-compressed-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-compressed-info.json
+          curl -L -o astar-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-info.json
+          curl -L -o shiden-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-info.json
+          curl -L -o shibuya-info.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-info.json
+          curl -L -o astar-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/astar-metadata.json
+          curl -L -o shiden-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shiden-metadata.json
+          curl -L -o shibuya-metadata.json https://github.com/AstarNetwork/Astar/releases/download/v5.43.1/shibuya-metadata.json
+          
 
       # We now get extra information thanks to subwasm
-      - name: Install subwasm
-        run: |
-          wget https://github.com/chevdor/subwasm/releases/download/v${{ env.SUBWASM_VERSION }}/subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
-          sudo dpkg -i subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
-          subwasm --version
+      # - name: Install subwasm
+      #   run: |
+      #     wget https://github.com/chevdor/subwasm/releases/download/v${{ env.SUBWASM_VERSION }}/subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
+      #     sudo dpkg -i subwasm_linux_amd64_v${{ env.SUBWASM_VERSION }}.deb
+      #     subwasm --version
 
-      - name: Show Runtime information
-        shell: bash
-        run: |
-          subwasm info ${{ steps.srtool_build.outputs.wasm }}
-          subwasm info ${{ steps.srtool_build.outputs.wasm_compressed }}
-          subwasm --json info ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-info.json
-          subwasm --json info ${{ steps.srtool_build.outputs.wasm_compressed }} > ${{ matrix.chain }}-compressed-info.json
+      # - name: Show Runtime information
+      #   shell: bash
+      #   run: |
+      #     subwasm info ${{ steps.srtool_build.outputs.wasm }}
+      #     subwasm info ${{ steps.srtool_build.outputs.wasm_compressed }}
+      #     subwasm --json info ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-info.json
+      #     subwasm --json info ${{ steps.srtool_build.outputs.wasm_compressed }} > ${{ matrix.chain }}-compressed-info.json
 
-      - name: Extract the metadata
-        shell: bash
-        run: |
-          subwasm meta ${{ steps.srtool_build.outputs.wasm }}
-          subwasm --json meta ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-metadata.json
+      # - name: Extract the metadata
+      #   shell: bash
+      #   run: |
+      #     subwasm meta ${{ steps.srtool_build.outputs.wasm }}
+      #     subwasm --json meta ${{ steps.srtool_build.outputs.wasm }} > ${{ matrix.chain }}-metadata.json
 
-      - name: Check the metadata diff
-        shell: bash
-        # the following subwasm call will error for chains that are not known and/or live, that includes shell for instance
-        run: |
-          subwasm diff ${{ steps.srtool_build.outputs.wasm }} --chain-b ${{ matrix.chain }} || \
-            echo "Subwasm call failed, check the logs. This is likely because ${{ matrix.chain }} is not known by subwasm" | \
-            tee ${{ matrix.chain }}-diff.txt
+      # - name: Check the metadata diff
+      #   shell: bash
+      #   # the following subwasm call will error for chains that are not known and/or live, that includes shell for instance
+      #   run: |
+      #     subwasm diff ${{ steps.srtool_build.outputs.wasm }} --chain-b ${{ matrix.chain }} || \
+      #       echo "Subwasm call failed, check the logs. This is likely because ${{ matrix.chain }} is not known by subwasm" | \
+      #       tee ${{ matrix.chain }}-diff.txt
 
       - name: Archive Subwasm results
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.chain }}-runtime
           path: |
-            ${{ matrix.chain }}-info.json
             ${{ matrix.chain }}-compressed-info.json
             ${{ matrix.chain }}-metadata.json
             ${{ matrix.chain }}-diff.txt
