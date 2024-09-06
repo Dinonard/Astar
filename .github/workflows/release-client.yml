@@ -189,7 +189,7 @@ jobs:
           push: true
 
   publish-release-draft:
-    needs: [native-linux, native-macOS, docker]
+    needs: [native-linux, native-macos, docker]
     runs-on: ubuntu-latest
     outputs:
       release_url: ${{ steps.create-release.outputs.html_url }}
