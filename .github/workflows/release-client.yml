@@ -1,4 +1,4 @@
-name: Release Build
+name: Release Client Build
 on:
   push:
     tags:
