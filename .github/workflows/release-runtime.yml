@@ -201,11 +201,27 @@ jobs:
       - name: Archive Subwasm results
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.chain }}-runtime
+          name: astar-runtime
           path: |
-            ${{ matrix.chain }}-compressed-info.json
-            ${{ matrix.chain }}-metadata.json
-            ${{ matrix.chain }}-diff.txt
+            astar-compressed-info.json
+            astar-metadata.json
+
+      - name: Archive Subwasm results
+        uses: actions/upload-artifact@v3
+        with:
+          name: shiden-runtime
+          path: |
+            shiden-compressed-info.json
+            shiden-metadata.json
+
+
+      - name: Archive Subwasm results
+        uses: actions/upload-artifact@v3
+        with:
+          name: shibuya-runtime
+          path: |
+            shibuya-compressed-info.json
+            shibuya-metadata.json
 
   publish-release-draft:
     needs: [evm-tracing-runtimes, srtool]
