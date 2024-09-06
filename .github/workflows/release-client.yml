@@ -94,7 +94,7 @@ jobs:
         env:
           TARGET: ${{ matrix.target }}
         id: artifact-name
-        run: echo "::set-output name=name::astar-ubuntu-latest-${TARGET%%-*}"
+        run: echo "name=astar-ubuntu-latest-${TARGET%%-*}" >> $GITHUB_OUTPUT
 
       - uses: actions/upload-artifact@v3
         with:
@@ -210,7 +210,7 @@ jobs:
         run: |
           latest_client_tag=$(curl -s https://api.github.com/repos/AstarNetwork/Astar/releases | \
            jq -r 'map(select(.name | test("^v\\d+\\.\\d+\\.\\d+$"; "i")))[0] | .tag_name')
-          echo "::set-output name=latest_client_tag::$latest_client_tag"
+          echo "latest_client_tag=$latest_client_tag" >> $GITHUB_OUTPUT
 
       - name: Generate Release Body
         env:
