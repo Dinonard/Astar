@@ -77,7 +77,7 @@ jobs:
 
       - name: Untar tracing binary
         run: |
-          mkdir -p release
+          mkdir -p tracing
           tar -xzf release.tar.gz -C tracing
 
       - uses: actions/upload-artifact@v3
